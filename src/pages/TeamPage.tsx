@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 
 export default function TeamPage() {
-    const { user } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
     const [search, setSearch] = useState('');
     const [selectedUser, setSelectedUser] = useState<any>(null);

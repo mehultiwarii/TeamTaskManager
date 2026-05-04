@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -7,7 +7,6 @@ interface SidebarProps {
 
 export default function Sidebar({ activePage }: SidebarProps) {
     const { user, logout } = useAuth();
-    const location = useLocation();
 
     const initials = user?.name ? user.name.split(' ').map((w: any) => w[0]).join('').toUpperCase() : 'U';
 

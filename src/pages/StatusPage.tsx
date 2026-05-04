@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
-import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 
 export default function StatusPage() {
-    const { user } = useAuth();
     const [tasks, setTasks] = useState<any[]>([]);
     const [filter, setFilter] = useState('Ongoing');
 

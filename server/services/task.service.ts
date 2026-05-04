@@ -1,7 +1,7 @@
-import Task from '../models/Task';
+import Task, { ITask } from '../models/Task';
 import Project from '../models/Project';
 
-export const createTask = async (data: any) => {
+export const createTask = async (data: any): Promise<ITask> => {
     const project = await Project.findById(data.projectId);
     if (!project) throw new Error('Project not found');
 
@@ -9,14 +9,14 @@ export const createTask = async (data: any) => {
         ...data,
         history: [{ status: 'Todo', description: 'Task created and linked to project', timestamp: new Date() }]
     });
-    return task;
+    return task as ITask;
 };
 
 export const getTasksByProject = async (projectId: string) => {
     const tasks = await Task.find({ projectId }).populate('assignedTo', 'name');
     const now = new Date();
     return tasks.map(task => {
-        const t = task.toObject();
+        const t: any = task.toObject();
         if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
             t.status = 'Overdue';
         }
@@ -28,7 +28,7 @@ export const getUserTasks = async (userId: string) => {
     const tasks = await Task.find({ assignedTo: userId }).populate('projectId', 'name').sort({ updatedAt: -1 });
     const now = new Date();
     return tasks.map(task => {
-        const t = task.toObject();
+        const t: any = task.toObject();
         if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
             t.status = 'Overdue';
         }
@@ -53,7 +53,7 @@ export const getAllTasks = async () => {
     const tasks = await Task.find().populate('projectId assignedTo');
     const now = new Date();
     return tasks.map(task => {
-        const t = task.toObject();
+        const t: any = task.toObject();
         if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
             t.status = 'Overdue';
         }
@@ -84,7 +84,7 @@ export const getMemberStatusTasks = async (userId: string, filter: string) => {
 
     const tasks = await Task.find(query).populate('projectId', 'name').sort({ updatedAt: -1 });
     return tasks.map(task => {
-        const t = task.toObject();
+        const t: any = task.toObject();
         if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
             t.status = 'Overdue';
         }
