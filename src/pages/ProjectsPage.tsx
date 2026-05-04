@@ -32,6 +32,15 @@ export default function ProjectsPage() {
         } catch (error) {}
     };
 
+    const deleteProject = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        if (!window.confirm('Are you sure you want to delete this project and all its tasks?')) return;
+        try {
+            await api.delete(`/projects/${id}`);
+            fetchProjects();
+        } catch (error) {}
+    };
+
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col">
             <header className="fixed top-0 w-full h-16 bg-white border-b border-slate-200 z-50 flex items-center px-8 justify-between">
@@ -57,7 +66,15 @@ export default function ProjectsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {projects.map(p => (
-                                <div key={p._id} onClick={() => navigate(`/projects/${p._id}`)} className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group">
+                                <div key={p._id} onClick={() => navigate(`/projects/${p._id}`)} className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group relative">
+                                    {user?.role === 'Admin' && (
+                                        <button 
+                                            onClick={(e) => deleteProject(e, p._id)}
+                                            className="absolute top-6 right-6 w-8 h-8 rounded-full bg-slate-50 text-slate-300 hover:bg-error hover:text-white transition-all flex items-center justify-center z-10"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">delete</span>
+                                        </button>
+                                    )}
                                     <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors mb-6">
                                         <span className="material-symbols-outlined">folder</span>
                                     </div>

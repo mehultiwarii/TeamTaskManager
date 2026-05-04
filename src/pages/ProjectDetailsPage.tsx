@@ -30,6 +30,14 @@ export default function ProjectDetailsPage() {
         fetchData();
     }, [id]);
 
+    const deleteTask = async (taskId: string) => {
+        if (!window.confirm('Delete this task?')) return;
+        try {
+            await api.delete(`/tasks/${taskId}`);
+            fetchData();
+        } catch (error) {}
+    };
+
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col">
             <header className="fixed top-0 w-full h-16 bg-white border-b border-slate-200 z-50 flex items-center px-8 justify-between shadow-sm">
@@ -52,13 +60,23 @@ export default function ProjectDetailsPage() {
                                     <div className="flex items-center justify-between px-4">
                                         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{status}</h3>
                                         <span className="bg-white px-3 py-1 rounded-full border border-slate-200 text-xs font-black text-slate-400 shadow-sm">
-                                            {tasks.filter(t => t.status === status).length}
+                                            {tasks.filter(t => t.status === status || (status === 'Todo' && t.status === 'Overdue')).length}
                                         </span>
                                     </div>
                                     <div className="space-y-4 min-h-[200px] p-2 rounded-[32px] bg-slate-100/50 border border-dashed border-slate-200">
-                                        {tasks.filter(t => t.status === status).map(task => (
-                                            <div key={task._id} className="bg-white p-6 rounded-[28px] border border-slate-200 shadow-sm hover:shadow-xl transition-all group">
-                                                <h4 className="font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">{task.title}</h4>
+                                        {tasks.filter(t => t.status === status || (status === 'Todo' && t.status === 'Overdue')).map(task => (
+                                            <div key={task._id} className="bg-white p-6 rounded-[28px] border border-slate-200 shadow-sm hover:shadow-xl transition-all group relative">
+                                                {user?.role === 'Admin' && (
+                                                    <button onClick={() => deleteTask(task._id)} className="absolute top-4 right-4 w-6 h-6 rounded-full bg-slate-50 text-slate-300 hover:bg-error hover:text-white transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                        <span className="material-symbols-outlined text-xs">delete</span>
+                                                    </button>
+                                                )}
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors">{task.title}</h4>
+                                                    {task.status === 'Overdue' && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[8px] font-black uppercase">Overdue</span>
+                                                    )}
+                                                </div>
                                                 <p className="text-[11px] text-slate-400 leading-relaxed mb-4 line-clamp-2">{task.description}</p>
                                                 {task.assignedTo && (
                                                     <div className="flex items-center gap-2 pt-4 border-t border-slate-50">

@@ -13,11 +13,27 @@ export const createTask = async (data: any) => {
 };
 
 export const getTasksByProject = async (projectId: string) => {
-    return await Task.find({ projectId }).populate('assignedTo', 'name');
+    const tasks = await Task.find({ projectId }).populate('assignedTo', 'name');
+    const now = new Date();
+    return tasks.map(task => {
+        const t = task.toObject();
+        if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
+            t.status = 'Overdue';
+        }
+        return t;
+    });
 };
 
 export const getUserTasks = async (userId: string) => {
-    return await Task.find({ assignedTo: userId }).populate('projectId', 'name').sort({ updatedAt: -1 });
+    const tasks = await Task.find({ assignedTo: userId }).populate('projectId', 'name').sort({ updatedAt: -1 });
+    const now = new Date();
+    return tasks.map(task => {
+        const t = task.toObject();
+        if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
+            t.status = 'Overdue';
+        }
+        return t;
+    });
 };
 
 export const updateTaskStatus = async (userId: string, taskId: string, status: string) => {
@@ -34,7 +50,15 @@ export const updateTaskStatus = async (userId: string, taskId: string, status: s
 };
 
 export const getAllTasks = async () => {
-    return await Task.find().populate('projectId assignedTo');
+    const tasks = await Task.find().populate('projectId assignedTo');
+    const now = new Date();
+    return tasks.map(task => {
+        const t = task.toObject();
+        if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
+            t.status = 'Overdue';
+        }
+        return t;
+    });
 };
 
 export const deleteTask = async (taskId: string) => {
@@ -58,5 +82,12 @@ export const getMemberStatusTasks = async (userId: string, filter: string) => {
         query.dueDate = { $lt: now };
     }
 
-    return await Task.find(query).populate('projectId', 'name').sort({ updatedAt: -1 });
+    const tasks = await Task.find(query).populate('projectId', 'name').sort({ updatedAt: -1 });
+    return tasks.map(task => {
+        const t = task.toObject();
+        if (t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now) {
+            t.status = 'Overdue';
+        }
+        return t;
+    });
 };

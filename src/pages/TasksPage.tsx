@@ -8,7 +8,7 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [form, setForm] = useState({ title: '', description: '', projectId: '' });
+    const [form, setForm] = useState({ title: '', description: '', projectId: '', dueDate: '' });
 
     const fetchData = async () => {
         try {
@@ -31,7 +31,15 @@ export default function TasksPage() {
         try {
             await api.post('/tasks', form);
             setShowModal(false);
-            setForm({ title: '', description: '', projectId: projects[0]?._id || '' });
+            setForm({ title: '', description: '', projectId: projects[0]?._id || '', dueDate: '' });
+            fetchData();
+        } catch (error) {}
+    };
+
+    const deleteTask = async (id: string) => {
+        if (!window.confirm('Delete this task?')) return;
+        try {
+            await api.delete(`/tasks/${id}`);
             fetchData();
         } catch (error) {}
     };
@@ -70,13 +78,30 @@ export default function TasksPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {tasks.map(task => (
-                                <div key={task._id} className="bg-white rounded-[40px] border border-slate-200 p-10 shadow-sm hover:shadow-2xl transition-all flex flex-col group">
+                                <div key={task._id} className="bg-white rounded-[40px] border border-slate-200 p-10 shadow-sm hover:shadow-2xl transition-all flex flex-col group relative">
+                                    {user?.role === 'Admin' && (
+                                        <button onClick={() => deleteTask(task._id)} className="absolute top-6 right-6 w-8 h-8 rounded-full bg-slate-50 text-slate-300 hover:bg-error hover:text-white transition-all flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-sm">delete</span>
+                                        </button>
+                                    )}
                                     <div className="flex justify-between items-start mb-8">
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black uppercase text-primary mb-1">{task.projectId?.name || 'Project'}</span>
-                                            <span className={`w-2 h-2 rounded-full ${task.status === 'Completed' ? 'bg-green-500' : 'bg-primary'}`}></span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${
+                                                task.status === 'Completed' ? 'bg-green-100 text-green-700' : 
+                                                task.status === 'Overdue' ? 'bg-error-container text-on-error-container' : 'bg-primary/10 text-primary'
+                                            }`}>
+                                                {task.status}
+                                            </span>
                                         </div>
-                                        <span className="text-[10px] font-bold text-slate-400">{new Date(task.createdAt).toLocaleDateString()}</span>
+                                        {task.dueDate && (
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-[8px] font-black uppercase text-slate-300">Deadline</span>
+                                                <span className={`text-[10px] font-bold ${task.status === 'Overdue' ? 'text-error' : 'text-slate-400'}`}>
+                                                    {new Date(task.dueDate).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                     <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-primary transition-colors">{task.title}</h3>
                                     <p className="text-slate-500 text-sm leading-relaxed mb-10 line-clamp-3">{task.description}</p>
@@ -91,7 +116,7 @@ export default function TasksPage() {
                                                 <span className="text-xs font-bold text-slate-700">{task.assignedTo?.name || 'Admin'}</span>
                                             </div>
                                         </div>
-                                        {user?.role === 'Member' && (
+                                        {user?.role === 'Member' && task.status !== 'Completed' && (
                                             <button 
                                                 onClick={() => updateStatus(task._id, task.status === 'Todo' ? 'In Progress' : 'Completed')}
                                                 className="bg-slate-900 text-white px-6 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-black/10 hover:bg-black transition-all"
@@ -140,6 +165,18 @@ export default function TasksPage() {
                                     onChange={e => setForm({...form, title: e.target.value})} 
                                     required 
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Deadline</label>
+                                    <input 
+                                        type="date"
+                                        className="w-full bg-slate-50 border-2 border-slate-50 rounded-[25px] px-8 py-5 outline-none focus:border-primary/20 focus:bg-white transition-all font-bold text-slate-900" 
+                                        value={form.dueDate} 
+                                        onChange={e => setForm({...form, dueDate: e.target.value})} 
+                                    />
+                                </div>
                             </div>
 
                             <div className="space-y-2">
