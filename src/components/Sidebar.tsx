@@ -16,6 +16,7 @@ export default function Sidebar({ activePage }: SidebarProps) {
     const navItems = [
         { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
         { key: 'projects', label: 'Projects', icon: 'folder_open', path: '/projects' },
+        { key: 'tasks', label: 'Tasks', icon: 'task_alt', path: '/tasks' },
         { key: 'team', label: 'Team', icon: 'group', path: '/team' },
         { key: 'settings', label: 'Settings', icon: 'settings', path: '/settings' },
     ];

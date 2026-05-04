@@ -7,6 +7,7 @@ import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailsPage from './pages/ProjectDetailsPage';
 import TeamPage from './pages/TeamPage';
 import SettingsPage from './pages/SettingsPage';
+import TasksPage from './pages/TasksPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -31,6 +32,7 @@ function AppRoutes() {
             <Route path="/projects" element={<PrivateRoute><ProjectsPage /></PrivateRoute>} />
             <Route path="/projects/:id" element={<PrivateRoute><ProjectDetailsPage /></PrivateRoute>} />
             <Route path="/team" element={<PrivateRoute><TeamPage /></PrivateRoute>} />
+            <Route path="/tasks" element={<PrivateRoute><TasksPage /></PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>

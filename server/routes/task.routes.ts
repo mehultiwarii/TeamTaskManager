@@ -7,6 +7,7 @@ const router = Router();
 
 router.use(authenticate);
 
+router.get('/', taskController.getUserTasks);
 router.post('/', authorizeProject(['Admin', 'Member']), taskController.createTask);
 router.get('/project/:id', authorizeProject(['Admin', 'Member']), taskController.getProjectTasks);
 router.patch('/:id', taskController.updateTask);

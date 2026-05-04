@@ -39,3 +39,13 @@ export const deleteTask = async (req: AuthRequest, res: Response) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+export const getUserTasks = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.id;
+        const tasks = await taskService.getUserTasks(userId);
+        res.json(tasks);
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};

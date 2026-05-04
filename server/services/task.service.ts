@@ -29,3 +29,9 @@ export const updateTask = async (userId: string, taskId: string, updateData: any
 export const deleteTask = async (taskId: string) => {
     return await Task.findByIdAndDelete(taskId);
 };
+
+export const getUserTasks = async (userId: string) => {
+    const memberships = await ProjectMember.find({ userId });
+    const projectIds = memberships.map(m => m.projectId);
+    return await Task.find({ projectId: { $in: projectIds } }).populate('projectId', 'name').populate('assignedTo', 'name');
+};
