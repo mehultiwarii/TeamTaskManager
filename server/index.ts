@@ -23,8 +23,17 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/promanage'
 mongoose.connect(MONGO_URI)
     .then(() => {
         console.log('Successfully connected to MongoDB');
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
+        });
+
+        server.on('error', (error: any) => {
+            if (error.code === 'EADDRINUSE') {
+                console.error(`Error: Port ${PORT} is already in use. Please kill the process using this port and try again.`);
+                process.exit(1);
+            } else {
+                console.error('Server error:', error);
+            }
         });
     })
     .catch((error) => {

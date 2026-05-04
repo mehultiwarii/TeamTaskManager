@@ -6,90 +6,98 @@ import api from '../lib/api';
 export default function TasksPage() {
     const { user } = useAuth();
     const [tasks, setTasks] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState({ title: '', description: '', projectId: '' });
 
-    const fetchTasks = async () => {
+    const fetchData = async () => {
         try {
-            const response = await api.get('/tasks');
-            setTasks(response.data);
+            const [tRes, pRes] = await Promise.all([
+                api.get('/tasks'),
+                api.get('/projects')
+            ]);
+            setTasks(tRes.data);
+            setProjects(pRes.data);
+            if (pRes.data.length > 0 && !form.projectId) setForm(f => ({ ...f, projectId: pRes.data[0]._id }));
         } catch (error) {}
     };
 
     useEffect(() => {
-        fetchTasks();
+        fetchData();
     }, []);
+
+    const createTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.post('/tasks', form);
+            setShowModal(false);
+            setForm({ title: '', description: '', projectId: projects[0]?._id || '' });
+            fetchData();
+        } catch (error) {}
+    };
 
     const updateStatus = async (taskId: string, status: string) => {
         try {
             await api.patch(`/tasks/${taskId}/status`, { status });
-            fetchTasks();
-        } catch (error) {}
-    };
-
-    const deleteTask = async (taskId: string) => {
-        try {
-            await api.delete(`/tasks/${taskId}`);
-            fetchTasks();
+            fetchData();
         } catch (error) {}
     };
 
     return (
         <div className="bg-slate-50 min-h-screen flex flex-col">
-            <header className="fixed top-0 w-full h-16 bg-white border-b border-slate-200 z-50 flex items-center px-8 justify-between">
-                <span className="text-xl font-black text-primary">ProManage</span>
-                <span className="text-sm font-bold text-slate-600">Task Central</span>
+            <header className="fixed top-0 w-full h-16 bg-white border-b border-slate-200 z-50 flex items-center px-8 justify-between shadow-sm">
+                <span className="text-2xl font-black text-primary tracking-tight">ProManage</span>
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">{user?.role}</span>
+                </div>
             </header>
 
             <div className="flex h-screen overflow-hidden">
                 <Sidebar activePage="tasks" />
                 <main className="flex-1 pt-24 p-8 overflow-y-auto">
                     <div className="max-w-6xl mx-auto">
-                        <header className="mb-8">
-                            <h1 className="text-4xl font-black text-slate-900">Available Tasks</h1>
-                            <p className="text-slate-500 font-medium">Select a task created by admin to begin working.</p>
+                        <header className="flex justify-between items-end mb-12">
+                            <div>
+                                <h1 className="text-5xl font-black text-slate-900 mb-2">Tasks</h1>
+                                <p className="text-slate-500 font-medium text-lg">Centralized oversight for all project milestones.</p>
+                            </div>
+                            {user?.role === 'Admin' && (
+                                <button onClick={() => setShowModal(true)} className="bg-primary text-white px-8 py-4 rounded-[20px] font-bold shadow-2xl shadow-primary/30 hover:scale-[1.05] active:scale-95 transition-all">
+                                    Create New Task
+                                </button>
+                            )}
                         </header>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {tasks.map(task => (
-                                <div key={task._id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-xl transition-all flex flex-col">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full">
-                                            {task.projectId?.name}
-                                        </span>
-                                        {user?.role === 'Admin' && (
-                                            <button onClick={() => deleteTask(task._id)} className="text-error hover:bg-error/5 p-1 rounded-lg">
-                                                <span className="material-symbols-outlined text-[20px]">delete</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                    
-                                    <h3 className="text-xl font-bold text-slate-900 mb-2">{task.title}</h3>
-                                    <p className="text-sm text-slate-500 mb-6 line-clamp-3">{task.description}</p>
-
-                                    <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                                <div key={task._id} className="bg-white rounded-[40px] border border-slate-200 p-10 shadow-sm hover:shadow-2xl transition-all flex flex-col group">
+                                    <div className="flex justify-between items-start mb-8">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] text-slate-400 font-bold uppercase">Status</span>
-                                            <span className="text-sm font-black text-slate-900">{task.status}</span>
+                                            <span className="text-[10px] font-black uppercase text-primary mb-1">{task.projectId?.name || 'Project'}</span>
+                                            <span className={`w-2 h-2 rounded-full ${task.status === 'Completed' ? 'bg-green-500' : 'bg-primary'}`}></span>
                                         </div>
-
-                                        {user?.role === 'Member' && (
-                                            <div className="flex gap-2">
-                                                {task.status === 'Todo' && (
-                                                    <button 
-                                                        onClick={() => updateStatus(task._id, 'In Progress')}
-                                                        className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-primary/20"
-                                                    >
-                                                        Start Task
-                                                    </button>
-                                                )}
-                                                {task.status === 'In Progress' && (
-                                                    <button 
-                                                        onClick={() => updateStatus(task._id, 'Completed')}
-                                                        className="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-green-600/20"
-                                                    >
-                                                        Complete
-                                                    </button>
-                                                )}
+                                        <span className="text-[10px] font-bold text-slate-400">{new Date(task.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-primary transition-colors">{task.title}</h3>
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-10 line-clamp-3">{task.description}</p>
+                                    
+                                    <div className="mt-auto pt-8 border-t border-slate-50 flex justify-between items-center">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                                                {task.assignedTo?.name?.[0] || 'A'}
                                             </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black uppercase text-slate-300">Owner</span>
+                                                <span className="text-xs font-bold text-slate-700">{task.assignedTo?.name || 'Admin'}</span>
+                                            </div>
+                                        </div>
+                                        {user?.role === 'Member' && (
+                                            <button 
+                                                onClick={() => updateStatus(task._id, task.status === 'Todo' ? 'In Progress' : 'Completed')}
+                                                className="bg-slate-900 text-white px-6 py-2.5 rounded-2xl text-xs font-bold shadow-lg shadow-black/10 hover:bg-black transition-all"
+                                            >
+                                                {task.status === 'Todo' ? 'Claim Task' : 'Finalize'}
+                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -98,6 +106,60 @@ export default function TasksPage() {
                     </div>
                 </main>
             </div>
+
+            {showModal && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-[550px] rounded-[50px] shadow-2xl p-12 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                        
+                        <h3 className="text-4xl font-black text-slate-900 mb-2">New Task</h3>
+                        <p className="text-slate-400 font-medium mb-10">Assign mission-critical work to your team.</p>
+
+                        <form onSubmit={createTask} className="space-y-8 relative z-10">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Linked Project</label>
+                                <div className="relative">
+                                    <select 
+                                        className="w-full bg-slate-50 border-2 border-slate-50 rounded-[25px] px-8 py-5 outline-none focus:border-primary/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none"
+                                        value={form.projectId}
+                                        onChange={e => setForm({...form, projectId: e.target.value})}
+                                        required
+                                    >
+                                        {projects.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                                    </select>
+                                    <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Task Title</label>
+                                <input 
+                                    className="w-full bg-slate-50 border-2 border-slate-50 rounded-[25px] px-8 py-5 outline-none focus:border-primary/20 focus:bg-white transition-all font-bold text-slate-900 placeholder:text-slate-300" 
+                                    placeholder="e.g. Implement OAuth2" 
+                                    value={form.title} 
+                                    onChange={e => setForm({...form, title: e.target.value})} 
+                                    required 
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Brief Description</label>
+                                <textarea 
+                                    className="w-full bg-slate-50 border-2 border-slate-50 rounded-[25px] px-8 py-5 outline-none focus:border-primary/20 focus:bg-white transition-all font-medium text-slate-600 placeholder:text-slate-300 min-h-[120px]" 
+                                    placeholder="Explain the requirements..." 
+                                    value={form.description} 
+                                    onChange={e => setForm({...form, description: e.target.value})} 
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-6">
+                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-5 font-black text-slate-300 hover:text-slate-400 transition-colors">Dismiss</button>
+                                <button type="submit" className="flex-1 bg-primary text-white py-5 rounded-[25px] font-black shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">Create Task</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

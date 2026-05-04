@@ -1,48 +1,36 @@
 import Task from '../models/Task';
-import ProjectMember from '../models/ProjectMember';
+import Project from '../models/Project';
 
 export const createTask = async (data: any) => {
+    const project = await Project.findById(data.projectId);
+    if (!project) throw new Error('Project not found');
+
     const task = await Task.create({
         ...data,
-        history: [{ status: 'Todo', description: 'Task created by admin', timestamp: new Date() }]
+        history: [{ status: 'Todo', description: 'Task created and linked to project', timestamp: new Date() }]
     });
     return task;
 };
 
-export const updateTaskStatus = async (userId: string, taskId: string, status: string) => {
-    const task = await Task.findById(taskId);
-    if (!task) throw new Error('Task not found');
+export const getTasksByProject = async (projectId: string) => {
+    return await Task.find({ projectId }).populate('assignedTo', 'name');
+};
 
-    const update: any = { status };
+export const getUserTasks = async (userId: string) => {
+    return await Task.find({ assignedTo: userId }).populate('projectId', 'name').sort({ updatedAt: -1 });
+};
+
+export const updateTaskStatus = async (userId: string, taskId: string, status: string) => {
     const historyEntry = {
         status,
         timestamp: new Date(),
-        description: `Task status updated to ${status} by user`
+        description: `Status updated to ${status}`
     };
-
-    if (status === 'In Progress' && task.status === 'Todo') {
-        historyEntry.description = 'Task started';
-        update.assignedTo = userId;
-    }
-
     return await Task.findByIdAndUpdate(
         taskId,
-        { $set: update, $push: { history: historyEntry } },
+        { $set: { status, assignedTo: userId }, $push: { history: historyEntry } },
         { new: true }
     ).populate('projectId assignedTo');
-};
-
-export const getMemberStatus = async (userId: string, filter?: string) => {
-    const query: any = { assignedTo: userId };
-    
-    if (filter === 'Completed') query.status = 'Completed';
-    if (filter === 'Ongoing') query.status = 'In Progress';
-    if (filter === 'Overdue') {
-        query.status = { $ne: 'Completed' };
-        query.dueDate = { $lt: new Date() };
-    }
-
-    return await Task.find(query).populate('projectId').sort({ updatedAt: -1 });
 };
 
 export const getAllTasks = async () => {
@@ -51,4 +39,24 @@ export const getAllTasks = async () => {
 
 export const deleteTask = async (taskId: string) => {
     return await Task.findByIdAndDelete(taskId);
+};
+
+export const getMemberStatusTasks = async (userId: string, filter: string) => {
+    const query: any = { assignedTo: userId };
+    const now = new Date();
+
+    if (filter === 'Ongoing') {
+        query.status = { $ne: 'Completed' };
+        query.$or = [
+            { dueDate: { $gt: now } },
+            { dueDate: { $exists: false } }
+        ];
+    } else if (filter === 'Completed') {
+        query.status = 'Completed';
+    } else if (filter === 'Overdue') {
+        query.status = { $ne: 'Completed' };
+        query.dueDate = { $lt: now };
+    }
+
+    return await Task.find(query).populate('projectId', 'name').sort({ updatedAt: -1 });
 };

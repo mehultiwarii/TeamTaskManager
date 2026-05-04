@@ -41,7 +41,21 @@ export default function SignupPage() {
                         <p className="font-body-md text-body-md text-on-surface-variant">Join ProManage to isolate your workflow.</p>
                     </header>
 
-                    {error && <div className="mb-md p-sm bg-error-container text-on-error-container rounded-lg text-body-sm">{error}</div>}
+                    {error && (
+                        <div className="mb-lg p-md bg-error-container/30 border border-error/20 rounded-xl flex items-start gap-md animate-in fade-in slide-in-from-top-2 duration-300">
+                            <span className="material-symbols-outlined text-error text-xl mt-0.5">error</span>
+                            <div className="flex-1">
+                                <p className="font-bold text-on-error-container text-sm mb-1">Signup Failed</p>
+                                <p className="text-on-error-container/80 text-xs leading-relaxed">{error}</p>
+                            </div>
+                            <button 
+                                onClick={() => setError('')}
+                                className="text-on-error-container/50 hover:text-on-error-container transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-lg font-bold">close</span>
+                            </button>
+                        </div>
+                    )}
 
                     <form className="flex flex-col gap-md" onSubmit={submit}>
                         <div className="flex flex-col gap-xs">

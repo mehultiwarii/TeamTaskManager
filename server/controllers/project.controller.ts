@@ -13,7 +13,7 @@ export const createProject = async (req: AuthRequest, res: Response) => {
 
 export const getProjects = async (req: AuthRequest, res: Response) => {
     try {
-        const projects = await projectService.getProjects();
+        const projects = await projectService.getAdminProjects();
         res.json(projects);
     } catch (error: any) {
         res.status(500).json({ message: error.message });

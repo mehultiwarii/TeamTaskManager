@@ -8,6 +8,7 @@ router.use(authenticate);
 
 router.get('/', taskController.getTasks);
 router.get('/status', taskController.getMemberStatus);
+router.get('/project/:id', taskController.getProjectTasks);
 router.post('/', authorize(['Admin']), taskController.createTask);
 router.patch('/:id/status', taskController.updateTaskStatus);
 router.delete('/:id', authorize(['Admin']), taskController.deleteTask);

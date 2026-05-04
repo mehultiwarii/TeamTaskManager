@@ -12,7 +12,7 @@ export default function DashboardPage() {
     const fetchStats = async () => {
         try {
             const pRes = await api.get('/projects');
-            const tRes = await api.get(user?.role === 'Admin' ? '/tasks' : '/tasks/status');
+            const tRes = await api.get('/tasks');
             setStats({ projects: pRes.data.length, tasks: tRes.data.length });
         } catch (error) {}
     };
