@@ -28,3 +28,12 @@ export const getUsers = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ message: 'User removed' });
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
+    }
+};

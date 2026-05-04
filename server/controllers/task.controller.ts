@@ -58,3 +58,12 @@ export const getMemberStatus = async (req: AuthRequest, res: Response) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+export const getUserTasks = async (req: AuthRequest, res: Response) => {
+    try {
+        const tasks = await taskService.getUserTasks(req.params.userId);
+        res.json(tasks);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
+    }
+};
