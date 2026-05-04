@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "vite",
-    "dev:server": "tsx watch server/index.ts",
+    "dev:server": "tsx watch backend/src/index.ts",
     "build": "tsc -p tsconfig.server.json && vite build",
     "start": "node dist/index.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "seed": "tsx server/seed.ts"
+    "seed": "tsx backend/src/seed.ts"
   },
   "dependencies": {
     "axios": "^1.16.0",
