@@ -4,7 +4,7 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "outDir": "./dist",
-    "rootDir": "./server",
+    "rootDir": "./backend/src",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -13,11 +13,5 @@
     "resolveJsonModule": true,
     "noImplicitAny": false
   },
-  "include": ["server/**/*"],
-  "exclude": [
-    "server/routes/auth.ts",
-    "server/routes/projects.ts",
-    "server/routes/tasks.ts",
-    "server/routes/team.ts"
-  ]
+  "include": ["backend/src/**/*"]
 }
