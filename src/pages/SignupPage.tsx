@@ -1,0 +1,72 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export default function SignupPage() {
+    const { signup } = useAuth();
+    const navigate = useNavigate();
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const submit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+        try {
+            await signup({ name, email, password });
+            navigate('/dashboard');
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Signup failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-background text-on-background min-h-screen flex flex-col items-center justify-center p-gutter">
+            <main className="w-full max-w-[440px] flex flex-col gap-lg">
+                <div className="flex flex-col items-center gap-xs">
+                    <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-sm shadow-lg shadow-primary/20">
+                        <span className="material-symbols-outlined text-on-primary text-2xl">grid_view</span>
+                    </div>
+                    <h1 className="text-xl font-bold tracking-tighter text-slate-900">ProManage</h1>
+                </div>
+
+                <div className="bg-surface-container-lowest p-xl rounded-xl border border-outline-variant/30 shadow-xl">
+                    <header className="mb-lg">
+                        <h2 className="font-h2 text-h2 text-on-surface mb-xs">Create Account</h2>
+                        <p className="font-body-md text-body-md text-on-surface-variant">Join ProManage to isolate your workflow.</p>
+                    </header>
+
+                    {error && <div className="mb-md p-sm bg-error-container text-on-error-container rounded-lg text-body-sm">{error}</div>}
+
+                    <form className="flex flex-col gap-md" onSubmit={submit}>
+                        <div className="flex flex-col gap-xs">
+                            <label className="font-label-md text-label-md text-on-surface">Full Name</label>
+                            <input className="w-full px-md py-md bg-white border border-outline-variant rounded-lg" type="text" value={name} onChange={e => setName(e.target.value)} required />
+                        </div>
+                        <div className="flex flex-col gap-xs">
+                            <label className="font-label-md text-label-md text-on-surface">Email</label>
+                            <input className="w-full px-md py-md bg-white border border-outline-variant rounded-lg" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                        </div>
+                        <div className="flex flex-col gap-xs">
+                            <label className="font-label-md text-label-md text-on-surface">Password</label>
+                            <input className="w-full px-md py-md bg-white border border-outline-variant rounded-lg" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                        </div>
+                        <button className="w-full bg-primary text-on-primary py-md rounded-lg font-label-md disabled:opacity-50" type="submit" disabled={loading}>
+                            {loading ? 'Creating account...' : 'Signup'}
+                        </button>
+                    </form>
+                </div>
+                <footer className="text-center">
+                    <p className="text-body-md text-on-surface-variant">
+                        Already have an account? <Link className="text-primary font-semibold" to="/login">Login</Link>
+                    </p>
+                </footer>
+            </main>
+        </div>
+    );
+}
