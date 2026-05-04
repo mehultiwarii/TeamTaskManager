@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": "./server",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": false
+  },
+  "include": ["server/**/*"],
+  "exclude": [
+    "server/routes/auth.ts",
+    "server/routes/projects.ts",
+    "server/routes/tasks.ts",
+    "server/routes/team.ts"
+  ]
+}
