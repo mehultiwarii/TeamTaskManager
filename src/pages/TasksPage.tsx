@@ -3,18 +3,9 @@ import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 
-interface Task {
-    _id: string;
-    title: string;
-    description: string;
-    status: 'todo' | 'in-progress' | 'done';
-    projectId: { _id: string; name: string };
-    assignedTo: { _id: string; name: string };
-}
-
 export default function TasksPage() {
     const { user } = useAuth();
-    const [tasks, setTasks] = useState<Task[]>([]);
+    const [tasks, setTasks] = useState<any[]>([]);
 
     const fetchTasks = async () => {
         try {
@@ -27,62 +18,83 @@ export default function TasksPage() {
         fetchTasks();
     }, []);
 
-    const updateTaskStatus = async (taskId: string, status: string) => {
+    const updateStatus = async (taskId: string, status: string) => {
         try {
-            await api.patch(`/tasks/${taskId}`, { status });
+            await api.patch(`/tasks/${taskId}/status`, { status });
+            fetchTasks();
+        } catch (error) {}
+    };
+
+    const deleteTask = async (taskId: string) => {
+        try {
+            await api.delete(`/tasks/${taskId}`);
             fetchTasks();
         } catch (error) {}
     };
 
     return (
-        <div className="bg-background text-on-background min-h-screen flex flex-col">
-            <header className="fixed top-0 left-0 w-full z-40 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm">
-                <span className="text-xl font-bold text-slate-900">ProManage</span>
-                <span className="text-body-sm font-medium text-slate-600">{user?.name}</span>
+        <div className="bg-slate-50 min-h-screen flex flex-col">
+            <header className="fixed top-0 w-full h-16 bg-white border-b border-slate-200 z-50 flex items-center px-8 justify-between">
+                <span className="text-xl font-black text-primary">ProManage</span>
+                <span className="text-sm font-bold text-slate-600">Task Central</span>
             </header>
 
-            <div className="flex pt-16 h-screen overflow-hidden">
+            <div className="flex h-screen overflow-hidden">
                 <Sidebar activePage="tasks" />
-                <main className="flex-1 overflow-y-auto p-8">
-                    <header className="mb-8">
-                        <h1 className="text-h1 font-h1">My Tasks</h1>
-                        <p className="text-body-md text-on-surface-variant">All tasks across your projects.</p>
-                    </header>
+                <main className="flex-1 pt-24 p-8 overflow-y-auto">
+                    <div className="max-w-6xl mx-auto">
+                        <header className="mb-8">
+                            <h1 className="text-4xl font-black text-slate-900">Available Tasks</h1>
+                            <p className="text-slate-500 font-medium">Select a task created by admin to begin working.</p>
+                        </header>
 
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50 border-b border-slate-200">
-                                    <th className="p-4 font-bold text-slate-700">Task</th>
-                                    <th className="p-4 font-bold text-slate-700">Project</th>
-                                    <th className="p-4 font-bold text-slate-700">Status</th>
-                                    <th className="p-4 font-bold text-slate-700">Assigned To</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {tasks.map(task => (
-                                    <tr key={task._id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                        <td className="p-4">
-                                            <p className="font-bold text-slate-900">{task.title}</p>
-                                            <p className="text-xs text-slate-500">{task.description}</p>
-                                        </td>
-                                        <td className="p-4 text-slate-600 font-medium">{task.projectId?.name}</td>
-                                        <td className="p-4">
-                                            <select
-                                                value={task.status}
-                                                onChange={(e) => updateTaskStatus(task._id, e.target.value)}
-                                                className="text-xs font-bold border border-slate-200 rounded-lg px-3 py-1.5 outline-none bg-white"
-                                            >
-                                                <option value="todo">To Do</option>
-                                                <option value="in-progress">In Progress</option>
-                                                <option value="done">Done</option>
-                                            </select>
-                                        </td>
-                                        <td className="p-4 text-slate-600">{task.assignedTo?.name}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {tasks.map(task => (
+                                <div key={task._id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-xl transition-all flex flex-col">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded-full">
+                                            {task.projectId?.name}
+                                        </span>
+                                        {user?.role === 'Admin' && (
+                                            <button onClick={() => deleteTask(task._id)} className="text-error hover:bg-error/5 p-1 rounded-lg">
+                                                <span className="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                    
+                                    <h3 className="text-xl font-bold text-slate-900 mb-2">{task.title}</h3>
+                                    <p className="text-sm text-slate-500 mb-6 line-clamp-3">{task.description}</p>
+
+                                    <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase">Status</span>
+                                            <span className="text-sm font-black text-slate-900">{task.status}</span>
+                                        </div>
+
+                                        {user?.role === 'Member' && (
+                                            <div className="flex gap-2">
+                                                {task.status === 'Todo' && (
+                                                    <button 
+                                                        onClick={() => updateStatus(task._id, 'In Progress')}
+                                                        className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-primary/20"
+                                                    >
+                                                        Start Task
+                                                    </button>
+                                                )}
+                                                {task.status === 'In Progress' && (
+                                                    <button 
+                                                        onClick={() => updateStatus(task._id, 'Completed')}
+                                                        className="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-green-600/20"
+                                                    >
+                                                        Complete
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </main>
             </div>

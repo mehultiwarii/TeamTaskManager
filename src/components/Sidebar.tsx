@@ -2,35 +2,35 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
-    activePage: 'dashboard' | 'projects' | 'tasks' | 'team' | 'settings';
+    activePage: string;
 }
 
 export default function Sidebar({ activePage }: SidebarProps) {
     const { user, logout } = useAuth();
     const location = useLocation();
 
-    const initials = user?.name
-        ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
-        : 'U';
+    const initials = user?.name ? user.name.split(' ').map((w: any) => w[0]).join('').toUpperCase() : 'U';
 
     const navItems = [
         { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
         { key: 'projects', label: 'Projects', icon: 'folder_open', path: '/projects' },
         { key: 'tasks', label: 'Tasks', icon: 'task_alt', path: '/tasks' },
-        { key: 'team', label: 'Team', icon: 'group', path: '/team' },
-        { key: 'settings', label: 'Settings', icon: 'settings', path: '/settings' },
     ];
 
+    if (user?.role === 'Admin') {
+        navItems.push({ key: 'team', label: 'Team Management', icon: 'group', path: '/team' });
+    } else {
+        navItems.push({ key: 'status', label: 'My Status', icon: 'insights', path: '/status' });
+    }
+
     return (
-        <aside className="bg-slate-50 h-screen w-64 border-r border-slate-200 flex-shrink-0 hidden md:flex flex-col">
-            <nav className="flex flex-col h-full p-4 gap-2 font-inter text-[13px] font-medium">
-                <div className="flex items-center gap-3 px-3 py-4 mb-4 border-b border-slate-200">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
-                        {initials}
-                    </div>
+        <aside className="bg-white h-screen w-64 border-r border-slate-200 flex flex-col pt-16">
+            <nav className="flex-1 p-4 space-y-2">
+                <div className="px-3 py-4 mb-6 bg-slate-50 rounded-2xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">{initials}</div>
                     <div>
-                        <p className="text-slate-900 font-bold leading-tight">{user?.name || 'User'}</p>
-                        <p className="text-slate-500 text-[11px] capitalize">Member</p>
+                        <p className="font-bold text-slate-900 truncate w-32">{user?.name}</p>
+                        <p className="text-[10px] uppercase tracking-widest text-primary font-black">{user?.role}</p>
                     </div>
                 </div>
 
@@ -38,26 +38,19 @@ export default function Sidebar({ activePage }: SidebarProps) {
                     <Link
                         key={item.key}
                         to={item.path}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors active:scale-[0.98] ${
-                            activePage === item.key
-                                ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                            activePage === item.key ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 hover:bg-slate-50'
                         }`}
                     >
                         <span className="material-symbols-outlined">{item.icon}</span>
-                        {item.label}
+                        <span className="font-bold text-sm">{item.label}</span>
                     </Link>
                 ))}
 
-                <div className="mt-auto flex flex-col gap-1">
-                    <button
-                        onClick={logout}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-error hover:bg-error-container/10 transition-colors active:scale-[0.98] w-full text-left"
-                    >
-                        <span className="material-symbols-outlined">logout</span>
-                        Logout
-                    </button>
-                </div>
+                <button onClick={logout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-error hover:bg-error/5 w-full mt-auto">
+                    <span className="material-symbols-outlined">logout</span>
+                    <span className="font-bold text-sm">Logout</span>
+                </button>
             </nav>
         </aside>
     );

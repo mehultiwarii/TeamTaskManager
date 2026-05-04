@@ -5,6 +5,7 @@ interface User {
     id: string;
     name: string;
     email: string;
+    role: 'Admin' | 'Member';
 }
 
 interface AuthContextType {
@@ -53,7 +54,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
-        window.location.href = '/login';
     };
 
     return (
@@ -65,6 +65,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within an AuthProvider');
+    if (!context) throw new Error('useAuth error');
     return context;
 };

@@ -8,11 +8,14 @@ import ProjectDetailsPage from './pages/ProjectDetailsPage';
 import TeamPage from './pages/TeamPage';
 import SettingsPage from './pages/SettingsPage';
 import TasksPage from './pages/TasksPage';
+import StatusPage from './pages/StatusPage';
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+function PrivateRoute({ children, roles }: { children: React.ReactNode, roles?: string[] }) {
     const { user, loading } = useAuth();
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><span className="material-symbols-outlined text-primary text-4xl animate-spin">refresh</span></div>;
-    return user ? <>{children}</> : <Navigate to="/login" replace />;
+    if (loading) return null;
+    if (!user) return <Navigate to="/login" replace />;
+    if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+    return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
@@ -21,19 +24,21 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     return user ? <Navigate to="/dashboard" replace /> : <>{children}</>;
 }
 
-import React from 'react';
-
 function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
             <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
+            
             <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
             <Route path="/projects" element={<PrivateRoute><ProjectsPage /></PrivateRoute>} />
             <Route path="/projects/:id" element={<PrivateRoute><ProjectDetailsPage /></PrivateRoute>} />
-            <Route path="/team" element={<PrivateRoute><TeamPage /></PrivateRoute>} />
             <Route path="/tasks" element={<PrivateRoute><TasksPage /></PrivateRoute>} />
+            
+            <Route path="/team" element={<PrivateRoute roles={['Admin']}><TeamPage /></PrivateRoute>} />
+            <Route path="/status" element={<PrivateRoute roles={['Member']}><StatusPage /></PrivateRoute>} />
             <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+            
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
     );

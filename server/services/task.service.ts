@@ -1,37 +1,54 @@
 import Task from '../models/Task';
 import ProjectMember from '../models/ProjectMember';
 
-export const createTask = async (taskData: any) => {
-    return await Task.create(taskData);
+export const createTask = async (data: any) => {
+    const task = await Task.create({
+        ...data,
+        history: [{ status: 'Todo', description: 'Task created by admin', timestamp: new Date() }]
+    });
+    return task;
 };
 
-export const getProjectTasks = async (userId: string, projectId: string) => {
-    const membership = await ProjectMember.findOne({ userId, projectId });
-    if (!membership) throw new Error('Forbidden: Not a project member');
-
-    return await Task.find({ projectId }).populate('assignedTo', 'name email');
-};
-
-export const updateTask = async (userId: string, taskId: string, updateData: any) => {
+export const updateTaskStatus = async (userId: string, taskId: string, status: string) => {
     const task = await Task.findById(taskId);
     if (!task) throw new Error('Task not found');
 
-    const membership = await ProjectMember.findOne({ userId, projectId: task.projectId });
-    if (!membership) throw new Error('Forbidden: Not a project member');
+    const update: any = { status };
+    const historyEntry = {
+        status,
+        timestamp: new Date(),
+        description: `Task status updated to ${status} by user`
+    };
 
-    if (membership.role === 'Member' && task.assignedTo.toString() !== userId) {
-        throw new Error('Members can only update their own tasks');
+    if (status === 'In Progress' && task.status === 'Todo') {
+        historyEntry.description = 'Task started';
+        update.assignedTo = userId;
     }
 
-    return await Task.findByIdAndUpdate(taskId, updateData, { new: true });
+    return await Task.findByIdAndUpdate(
+        taskId,
+        { $set: update, $push: { history: historyEntry } },
+        { new: true }
+    ).populate('projectId assignedTo');
+};
+
+export const getMemberStatus = async (userId: string, filter?: string) => {
+    const query: any = { assignedTo: userId };
+    
+    if (filter === 'Completed') query.status = 'Completed';
+    if (filter === 'Ongoing') query.status = 'In Progress';
+    if (filter === 'Overdue') {
+        query.status = { $ne: 'Completed' };
+        query.dueDate = { $lt: new Date() };
+    }
+
+    return await Task.find(query).populate('projectId').sort({ updatedAt: -1 });
+};
+
+export const getAllTasks = async () => {
+    return await Task.find().populate('projectId assignedTo');
 };
 
 export const deleteTask = async (taskId: string) => {
     return await Task.findByIdAndDelete(taskId);
-};
-
-export const getUserTasks = async (userId: string) => {
-    const memberships = await ProjectMember.find({ userId });
-    const projectIds = memberships.map(m => m.projectId);
-    return await Task.find({ projectId: { $in: projectIds } }).populate('projectId', 'name').populate('assignedTo', 'name');
 };

@@ -1,21 +1,33 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IActivityLog {
+    status: string;
+    timestamp: Date;
+    description: string;
+}
+
 export interface ITask extends Document {
     title: string;
     description: string;
     projectId: mongoose.Types.ObjectId;
-    assignedTo: mongoose.Types.ObjectId;
-    status: 'todo' | 'in-progress' | 'done';
-    dueDate: Date;
+    assignedTo?: mongoose.Types.ObjectId;
+    status: 'Todo' | 'In Progress' | 'Completed';
+    dueDate?: Date;
+    history: IActivityLog[];
 }
 
 const TaskSchema: Schema = new Schema({
     title: { type: String, required: true },
     description: { type: String },
     projectId: { type: Schema.Types.ObjectId, ref: 'Project', required: true },
-    assignedTo: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    status: { type: String, enum: ['todo', 'in-progress', 'done'], default: 'todo' },
-    dueDate: { type: Date }
+    assignedTo: { type: Schema.Types.ObjectId, ref: 'User' },
+    status: { type: String, enum: ['Todo', 'In Progress', 'Completed'], default: 'Todo' },
+    dueDate: { type: Date },
+    history: [{
+        status: String,
+        timestamp: { type: Date, default: Date.now },
+        description: String
+    }]
 }, { timestamps: true });
 
 export default mongoose.model<ITask>('Task', TaskSchema);

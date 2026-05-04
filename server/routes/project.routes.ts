@@ -1,18 +1,16 @@
 import { Router } from 'express';
 import * as projectController from '../controllers/project.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { authorizeProject } from '../middleware/rbac.middleware';
+import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();
 
 router.use(authenticate);
 
-router.post('/', projectController.createProject);
 router.get('/', projectController.getProjects);
-router.patch('/:id', authorizeProject(['Admin']), projectController.updateProject);
-router.delete('/:id', authorizeProject(['Admin']), projectController.deleteProject);
+router.post('/', authorize(['Admin']), projectController.createProject);
+router.delete('/:id', authorize(['Admin']), projectController.deleteProject);
 
-router.post('/:id/members', authorizeProject(['Admin']), projectController.addMember);
-router.delete('/:id/members/:userId', authorizeProject(['Admin']), projectController.removeMember);
+router.post('/:id/members', authorize(['Admin']), projectController.addMember);
+router.delete('/:id/members/:userId', authorize(['Admin']), projectController.removeMember);
 
 export default router;

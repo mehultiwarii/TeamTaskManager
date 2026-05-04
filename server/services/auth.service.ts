@@ -2,26 +2,26 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/User';
 
-export const signup = async (userData: Partial<IUser>) => {
-    const { email, password, name } = userData;
-    const existingUser = await User.findOne({ email });
-    if (existingUser) throw new Error('Email already registered');
+export const signup = async (data: any) => {
+    const { name, email, password, role } = data;
+    const existing = await User.findOne({ email });
+    if (existing) throw new Error('Email exists');
 
-    const hashedPassword = await bcrypt.hash(password!, 10);
-    const user = await User.create({ name, email, password: hashedPassword });
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await User.create({ name, email, password: hashed, role: role || 'Member' });
 
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
-    return { user: { id: user._id, name: user.name, email: user.email }, token };
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'secret');
+    return { user: { id: user._id, name: user.name, email: user.email, role: user.role }, token };
 };
 
-export const login = async (credentials: any) => {
-    const { email, password } = credentials;
+export const login = async (data: any) => {
+    const { email, password } = data;
     const user = await User.findOne({ email });
-    if (!user) throw new Error('Invalid email or password');
+    if (!user) throw new Error('Not found');
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new Error('Invalid email or password');
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) throw new Error('Invalid');
 
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
-    return { user: { id: user._id, name: user.name, email: user.email }, token };
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'secret');
+    return { user: { id: user._id, name: user.name, email: user.email, role: user.role }, token };
 };
