@@ -22,22 +22,17 @@ if (!PORT) {
     console.error("Railway did NOT provide PORT");
     process.exit(1);
 }
-const MONGO_URI = process.env.MONGO_URI || '';
+
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+    console.error("MONGO_URI is missing in environment variables");
+    process.exit(1);
+}
+
+app.listen(PORT, () => {
+    console.log("Server running on port", PORT);
+});
 
 mongoose.connect(MONGO_URI)
-    .then(() => {
-        console.log("MongoDB connected successfully");
-        const server = app.listen(PORT, () => {
-            console.log("Server running on port", PORT);
-        });
-
-        server.on('error', (err: any) => {
-            if (err.code === 'EADDRINUSE') {
-                process.exit(1);
-            }
-        });
-    })
-    .catch((err) => {
-        console.error(err);
-        process.exit(1);
-    });
+    .then(() => console.log("MongoDB connected successfully"))
+    .catch((err) => console.error("MongoDB connection error:", err));
