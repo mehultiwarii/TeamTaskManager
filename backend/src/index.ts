@@ -17,14 +17,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 const MONGO_URI = process.env.MONGO_URI || '';
 
 mongoose.connect(MONGO_URI)
     .then(() => {
-        console.log('MongoDB connected successfully');
+        console.log("MongoDB connected successfully");
         const server = app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+            console.log("Server running on port", PORT);
         });
 
         server.on('error', (err: any) => {
