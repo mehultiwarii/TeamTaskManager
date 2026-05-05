@@ -17,20 +17,22 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 
+// Strict Railway PORT validation and 0.0.0.0 binding
 const PORT = process.env.PORT;
 if (!PORT) {
-    console.error("Railway did NOT provide PORT");
+    console.error("CRITICAL: process.env.PORT is missing. Railway deployment will fail.");
     process.exit(1);
 }
 
 const MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI) {
-    console.error("MONGO_URI is missing in environment variables");
+    console.error("CRITICAL: MONGO_URI is missing. Database connection required.");
     process.exit(1);
 }
 
-app.listen(PORT, () => {
-    console.log("Server running on port", PORT);
+// Bind to 0.0.0.0 to ensure the service is reachable from the public internet
+app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log("Server successfully bound to Railway PORT:", PORT);
 });
 
 mongoose.connect(MONGO_URI)
