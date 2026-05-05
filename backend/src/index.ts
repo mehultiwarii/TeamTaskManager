@@ -17,7 +17,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
+if (!PORT) {
+    console.error("Railway did NOT provide PORT");
+    process.exit(1);
+}
 const MONGO_URI = process.env.MONGO_URI || '';
 
 mongoose.connect(MONGO_URI)
